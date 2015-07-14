@@ -36,8 +36,18 @@ $(document).ready(function(){
       _(messages).each(function(message) {
         rooms[message.roomname] = true;
         if (app.roomFilter === 'all' || message.roomname === app.roomFilter) {
-          var $message = $('<p class="message">');
-          $message.text(message.username + ': ' + message.text);
+          var $message = $('<div class="message">');
+          var $username = $('<a href="" class="user-name">');
+          var $text = $('<p>');
+
+          if (friends.indexOf(message.username) !== -1) {
+            $text.addClass('friend');
+          }
+
+          $username.text(message.username);
+          $text.text(': ' + message.text);
+
+          $message.append($username).append($text);
           $messages.append($message);
         }
       });
@@ -61,12 +71,14 @@ $(document).ready(function(){
     }
   };
 
+  var friends = [];
+
   app.init();
 
   $('.send-message').on('click', function() {
-    var user = $('.user-name').val();
-    var message = $('.user-message').val();
-    var room = $('.user-room').val();
+    var user = $('.input-user-name').val();
+    var message = $('.input-user-message').val();
+    var room = $('.input-user-room').val();
 
     app.roomFilter = room ? room : app.roomFilter;
 
@@ -82,6 +94,12 @@ $(document).ready(function(){
 
   $('.rooms').on('change', function() {
     app.roomFilter = $(this).val();
+    app.fetch();
+  });
+
+  $('body').on('click', '.user-name', function(event){
+    event.preventDefault();
+    friends.push($(this).text());
     app.fetch();
   });
 
