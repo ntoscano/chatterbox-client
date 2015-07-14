@@ -3,7 +3,7 @@
 $(document).ready(function(){
 
   window.app = {
-    roomFilter: null,
+    roomFilter: 'all',
     server: 'https://api.parse.com/1/classes/chatterbox',
     init: function() {
       app.fetch();
@@ -31,11 +31,11 @@ $(document).ready(function(){
     displayMessages: function(messages) {
       var $messages = $('<div id="chats"></div>');
       var $rooms = $('.rooms');
-      var rooms = {};
+      var rooms = {all: true};
 
       _(messages).each(function(message) {
         rooms[message.roomname] = true;
-        if (!app.roomFilter || message.roomname === app.roomFilter) {
+        if (app.roomFilter === 'all' || message.roomname === app.roomFilter) {
           var $message = $('<p class="message">');
           $message.text(message.username + ': ' + message.text);
           $messages.append($message);
@@ -48,10 +48,12 @@ $(document).ready(function(){
 
       Object.keys(rooms).forEach(function(room) {
         var $room = $('<option class="room"></option>');
-        $room.data('room', room);
         $room.text(room);
         $rooms.append($room);
       });
+
+      $rooms.val(app.roomFilter);
+
     },
     clearMessages: function() {
       $('.rooms').children().remove();
@@ -64,11 +66,14 @@ $(document).ready(function(){
   $('.send-message').on('click', function() {
     var user = $('.user-name').val();
     var message = $('.user-message').val();
+    var room = $('.user-room').val();
+
+    app.roomFilter = room ? room : app.roomFilter;
 
     var messageData = {
       username: user,
       text: message,
-      roomname: 'lobby'
+      roomname: app.roomFilter
     };
 
     app.send(messageData);
@@ -76,9 +81,7 @@ $(document).ready(function(){
   });
 
   $('.rooms').on('change', function() {
-    var $room = $(this).find('option:selected');
-    console.log($room.data('room'));
-    app.roomFilter = $(this).data('room');
+    app.roomFilter = $(this).val();
     app.fetch();
   });
 
